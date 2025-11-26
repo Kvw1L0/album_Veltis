@@ -4,31 +4,34 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Álbum Gala VELTIS</title>
-  
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
+  <!-- Landing Page Inicial -->
   <div id="landing" class="landing-page" onclick="iniciarAlbum()">
     <div class="landing-content">
-        
         <p class="lead">Toca la pantalla y comienza a completar tu álbum NOCHE DE ESTRELLAS VELTIS 2025.</p>
-        
     </div>
   </div>
 
+  <!-- Contenido Principal -->
   <div id="contenido" class="hidden container">
     <h1 class="text-center">Mi Álbum de la Gala ✨</h1>
     
     <div id="laminas" class="grid-row">
-      </div>
+      <!-- Las tarjetas se generan aquí con JS -->
+    </div>
     
     <div class="actions">
-      <button class="btn btn-primary" onclick="modoPresentacion()">🎬 Modo Presentación</button>
-      <button class="btn btn-secondary" onclick="compartirAlbum()">📤 Compartir</button>
+      <!-- Botón modificado para subir fotos -->
+      <button id="btn-share" class="btn btn-secondary" onclick="subirFotosAlServidor()">
+        ☁️ Enviar mis fotos a la Pantalla
+      </button>
     </div>
   </div>
 
+  <!-- Modal de Cámara -->
   <div id="camera-modal" class="modal hidden">
     <div class="modal-content">
       <h5 id="titulo-lamina"></h5>
@@ -51,6 +54,39 @@
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <!-- CONFIGURACIÓN DE FIREBASE (Versión corregida a 10.8.0) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBP5D1AtaIcklOFJiKnEXKilgsz5-363RE",
+      authDomain: "veltis-data1.firebaseapp.com",
+      projectId: "veltis-data1",
+      storageBucket: "veltis-data1.firebasestorage.app", 
+      messagingSenderId: "607614671540",
+      appId: "1:607614671540:web:8118954f681910ecf995e1"
+    };
+
+    // Inicializar Firebase
+    const app = initializeApp(firebaseConfig);
+    
+    // Hacemos las funciones accesibles para script.js
+    window.db = getFirestore(app);
+    window.storage = getStorage(app);
+    window.dbCollection = collection;
+    window.dbAddDoc = addDoc;
+    window.dbTimestamp = serverTimestamp;
+    window.sRef = ref;
+    window.sUpload = uploadString;
+    window.sGetUrl = getDownloadURL;
+    
+    console.log("Firebase 10.8.0 conectado correctamente ✅");
+  </script>
+
+  <script src="script.js" defer></script>
 </body>
 </html>
+
+

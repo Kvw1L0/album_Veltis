@@ -154,7 +154,7 @@
         const loader = document.getElementById('loading');
 
         // Escuchar fotos (Últimas 50 para no saturar)
-        const q = query(collection(db, "fotos_gala"), orderBy("fecha", "desc"), limit(50));
+        const q = query(collection(db, "fotos_gala"), limit(50));
 
         onSnapshot(q, (snapshot) => {
             allPhotos = [];

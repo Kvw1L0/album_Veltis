@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visor Gala VELTIS 2025</title>
+    <style>
+        body {
+            background-color: #0f0f0f;
+            background-image: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000 100%);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            border-bottom: 1px solid #333;
+        }
+        
+        h1 {
+            margin: 0;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #d4af37; /* Dorado */
+        }
+
+        /* Controles de Filtro */
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        select {
+            padding: 10px 20px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            background: #222;
+            color: white;
+            border: 1px solid #444;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* Grilla Mosaico */
+        .gallery {
+            column-count: 4;
+            column-gap: 20px;
+            padding: 20px;
+        }
+
+        @media (max-width: 1200px) { .gallery { column-count: 3; } }
+        @media (max-width: 800px) { .gallery { column-count: 2; } }
+
+        .photo-card {
+            break-inside: avoid;
+            margin-bottom: 20px;
+            background: #1a1a1a;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+        
+        /* Animación de entrada */
+        .photo-card.new {
+            animation: slideUp 0.6s ease-out backwards;
+        }
+
+        .photo-card:hover {
+            transform: scale(1.02);
+            z-index: 10;
+        }
+
+        .photo-card img {
+            width: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        .card-info {
+            padding: 15px;
+            text-align: center;
+        }
+
+        .category-tag {
+            display: inline-block;
+            background: #d4af37;
+            color: #000;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        #loading { text-align: center; color: #666; margin-top: 50px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>✨ Noche de Estrellas Veltis 2025 ✨</h1>
+        <div class="controls">
+            <label>Mostrando:</label>
+            <select id="filtro" onchange="renderPhotos()">
+                <option value="todos">Todos los momentos</option>
+                <option value="En mi traje de Gala">En mi traje de Gala</option>
+                <option value="Con mi líder favorito">Con mi líder favorito</option>
+                <option value="Con un reconocido 2025">Con un reconocido 2025</option>
+                <option value="Junto a La mesa de la noche">Junto a La mesa de la noche</option>
+                <option value="En la pista de Baile">En la pista de Baile</option>
+                <option value="Mi Gala en una Foto">Mi Gala en una Foto</option>
+            </select>
+        </div>
+    </header>
+
+    <div id="loading">Esperando fotos en tiempo real... 📡</div>
+    <div id="gallery" class="gallery"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, limit } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+        // TU CONFIGURACIÓN
+        const firebaseConfig = {
+            apiKey: "AIzaSyBP5D1AtaIcklOFJiKnEXKilgsz5-363RE",
+            authDomain: "veltis-data1.firebaseapp.com",
+            projectId: "veltis-data1",
+            storageBucket: "veltis-data1.firebasestorage.app",
+            messagingSenderId: "607614671540",
+            appId: "1:607614671540:web:8118954f681910ecf995e1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        let allPhotos = [];
+        const gallery = document.getElementById('gallery');
+        const loader = document.getElementById('loading');
+
+        // Escuchar fotos (Últimas 50 para no saturar)
+        const q = query(collection(db, "fotos_gala"), orderBy("fecha", "desc"), limit(50));
+
+        onSnapshot(q, (snapshot) => {
+            allPhotos = [];
+            snapshot.forEach((doc) => {
+                allPhotos.push(doc.data());
+            });
+            
+            if (allPhotos.length > 0) loader.style.display = 'none';
+            renderPhotos();
+        });
+
+        // Función global para renderizar
+        window.renderPhotos = () => {
+            const filtro = document.getElementById('filtro').value;
+            gallery.innerHTML = ''; // Limpiar grilla
+
+            allPhotos.forEach(foto => {
+                // Filtrar
+                if (filtro !== 'todos' && foto.categoria !== filtro) return;
+
+                // Crear elemento
+                const div = document.createElement('div');
+                div.className = 'photo-card new';
+                
+                div.innerHTML = `
+                    <img src="${foto.url_foto}" alt="Foto gala" loading="lazy">
+                    <div class="card-info">
+                        <span class="category-tag">${foto.categoria}</span>
+                    </div>
+                `;
+                
+                gallery.appendChild(div);
+            });
+        };
+    </script>
+</body>
+</html>

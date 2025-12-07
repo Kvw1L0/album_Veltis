@@ -1,6 +1,6 @@
 // --- 1. Definir constantes y variables de estado ---
 const laminas = [
-  "Foto con mi súper equipo"",
+  "Foto con mi súper equipo",
   "haciendo una cara chistosa para el ginch",
   "Foto con el agente Z",
   "Foto con un reno de Santa ",

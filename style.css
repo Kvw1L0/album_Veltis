@@ -68,6 +68,7 @@ h1 {
   flex-wrap: wrap;
   justify-content: center;
   gap: 15px; /* Espacio entre tarjetas */
+  margin-top: 80px;
 }
 .grid-col {
   /* Cada columna (tarjeta) ocupará ~45% en móvil, ~30% en tablet, ~20% en desktop */

@@ -1,11 +1,11 @@
 // --- 1. Definir constantes y variables de estado ---
 const laminas = [
-  "1 participante en brazos de los demas",
-  "Foto con el animador",
-  "Mi peor selfie",
-  "Junto al espinita de la empresa",
-  "todos con un zapato en la mano",
-  "Foto grupal con pose de super heroes" ,
+  "En la entrada del banco",
+  "Con mi persona favorita",
+  "Con un Vigilante",
+  "En el sector de cajas",
+  "Todos con un zapato en la mano",
+  "Haciendo una cara chistosa",
 ];
 
 let currentLamina = null;

@@ -4,7 +4,7 @@ const laminas = [
   "Con mi persona favorita",
   "Con un Vigilante",
   "En el sector de cajas",
-  "Todos con un zapato en la mano",
+  "En mi lugar favorito del banco",
   "Haciendo una cara chistosa",
 ];
 

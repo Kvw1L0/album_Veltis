@@ -174,61 +174,92 @@ function subirDesdeGaleria(event) {
 window.subirDesdeGaleria = subirDesdeGaleria;
 
 // --- SUBIR A FIREBASE ---
+// --- SUBIR A FIREBASE (CORREGIDO) ---
 async function subirFotosAlServidor() {
+    // 1. Verificación básica de conexión
     if (!window.db || !window.storage) {
         alert("Aún conectando con el servidor... Intenta en unos segundos.");
         return;
     }
 
+    // 2. BUSCAR FOTOS VISIBLES ANTES DE INTENTAR SUBIR
+    const tarjetas = document.querySelectorAll('.card');
+    const fotosParaSubir = [];
+
+    // Recorremos las tarjetas solo para identificar cuáles tienen foto
+    tarjetas.forEach(card => {
+        const img = card.querySelector('.inner-frame img'); // Buscamos específicamente en el marco
+        if (img && img.src && img.src.length > 100) { // Validamos que tenga una imagen real (base64 es largo)
+            fotosParaSubir.push({
+                card: card,
+                imgElement: img,
+                categoria: card.querySelector('p').textContent
+            });
+        }
+    });
+
+    // 3. VALIDACIÓN: Si no encontramos fotos, frenamos aquí.
+    if (fotosParaSubir.length === 0) {
+        alert("Primero completa alguna lámina del álbum 📸");
+        return;
+    }
+
+    // --- Si llegamos aquí, es que SÍ hay fotos. Procedemos a subir ---
+    
     const btn = document.getElementById('btn-share');
     const textoOriginal = btn.textContent;
     btn.disabled = true;
-    btn.textContent = "Subiendo fotos... ⏳";
+    btn.textContent = `Subiendo ${fotosParaSubir.length} fotos... ⏳`;
 
-    const tarjetas = document.querySelectorAll('.card');
-    let fotosSubidas = 0;
+    let subidasExitosas = 0;
 
-    for (let i = 0; i < tarjetas.length; i++) {
-        const card = tarjetas[i];
-        const img = card.querySelector('img'); 
-        const categoria = card.querySelector('p').textContent;
+    for (const item of fotosParaSubir) {
+        try {
+            const timestamp = Date.now();
+            const cleanCat = item.categoria.replace(/\s+/g, '_').toLowerCase();
+            const nombreArchivo = `gala2025/${userId}_${cleanCat}_${timestamp}.jpg`; 
+            
+            // Referencia a Storage
+            const storageRef = window.sRef(window.storage, nombreArchivo);
+            
+            // Subir la imagen (String base64)
+            await window.sUpload(storageRef, item.imgElement.src, 'data_url');
+            
+            // Obtener URL pública
+            const urlPublica = await window.sGetUrl(storageRef);
 
-        if (img) {
-            try {
-                const timestamp = Date.now();
-                const cleanCat = categoria.replace(/\s+/g, '_').toLowerCase();
-                const nombreArchivo = `gala2025/${userId}_${cleanCat}_${timestamp}.jpg`; 
-                
-                const storageRef = window.sRef(window.storage, nombreArchivo);
-                await window.sUpload(storageRef, img.src, 'data_url');
-                const urlPublica = await window.sGetUrl(storageRef);
+            // Guardar en Firestore
+            await window.dbAddDoc(window.dbCollection(window.db, "fotos_gala"), {
+                usuario: userId,
+                categoria: item.categoria,
+                url_foto: urlPublica,
+                fecha: window.dbTimestamp()
+            });
 
-                await window.dbAddDoc(window.dbCollection(window.db, "fotos_gala"), {
-                    usuario: userId,
-                    categoria: categoria,
-                    url_foto: urlPublica,
-                    fecha: window.dbTimestamp()
-                });
+            subidasExitosas++;
+            
+            // Feedback visual de éxito (Borde verde)
+            item.card.querySelector('.inner-frame').style.borderColor = '#28a745';
+            item.card.querySelector('.inner-frame').style.borderWidth = '5px';
 
-                fotosSubidas++;
-                card.querySelector('.inner-frame').style.borderColor = '#28a745';
-                card.querySelector('.inner-frame').style.borderWidth = '5px';
-
-            } catch (error) {
-                console.error("Error subiendo foto:", error);
-            }
+        } catch (error) {
+            console.error("Error subiendo foto:", error);
+            // Opcional: Pintar borde rojo si falla
+            item.card.querySelector('.inner-frame').style.borderColor = 'red';
         }
     }
 
-    if (fotosSubidas > 0) {
-        alert(`¡Listo! Se enviaron ${fotosSubidas} fotos a la pantalla grande 🎉`);
+    // 4. RESULTADO FINAL
+    if (subidasExitosas > 0) {
+        alert(`¡Listo! Se enviaron ${subidasExitosas} fotos a la pantalla grande 🎉`);
         btn.textContent = "¡Enviado! ✅";
         setTimeout(() => {
             btn.disabled = false;
             btn.textContent = textoOriginal;
         }, 5000);
     } else {
-        alert("Primero completa alguna lámina del álbum 📸");
+        // Si detectó fotos pero no subió ninguna, es un error de red/firebase
+        alert("Hubo un error al subir las fotos. Revisa tu conexión a internet o la configuración.");
         btn.disabled = false;
         btn.textContent = textoOriginal;
     }

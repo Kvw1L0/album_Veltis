@@ -27,7 +27,7 @@ h1 {
   right: 0;
   
   /* Aquí controlas dónde empieza la grilla (debajo del texto) */
-  top: 300px; /* Ajusta este valor si el texto de fondo es más alto o más bajo */
+  top: 200px; /* Ajusta este valor si el texto de fondo es más alto o más bajo */
   
   /* Habilita el scroll SOLO dentro de este contenedor */
   overflow-y: auto; 

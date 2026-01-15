@@ -31,7 +31,7 @@ h1 {
   
   /* Habilita el scroll SOLO dentro de este contenedor */
   overflow-y: auto; 
-  padding: 20px;
+  padding: 50px;
   
   /* Opcional: Suaviza el scroll en celulares */
   -webkit-overflow-scrolling: touch; 

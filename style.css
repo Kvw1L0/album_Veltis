@@ -6,10 +6,11 @@ body {
   text-align: center;
   background-image: url('fondo.jpg');
   background-size: cover;
-  background-position: center;
-  background-attachment: scroll;
+  background-position: top center; /* Importante: que siempre empiece desde arriba */
+  background-attachment: fixed;   /* Esto evita que el fondo se mueva o crezca con el scroll */
   color: white;
 }
+
 h1 {
   margin-bottom: 20px;
   text-shadow: 2px 2px 4px #000;
@@ -68,7 +69,7 @@ h1 {
   flex-wrap: wrap;
   justify-content: center;
   gap: 15px; /* Espacio entre tarjetas */
-  margin-top: 150px;
+  margin-top: 200px;
 }
 .grid-col {
   /* Cada columna (tarjeta) ocupará ~45% en móvil, ~30% en tablet, ~20% en desktop */

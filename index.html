@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ruleta </title>
+    <title>Ruleta Trucada - Orden Personalizado</title>
     <style>
-        /* ESTA ES LA REGLA MÁGICA QUE EVITA EL DESFASE */
         * {
             box-sizing: border-box;
         }
@@ -13,9 +12,9 @@
         :root {
             --theme-color: #FFCC00; 
             --bg: #111111; 
-            --w: 200px; /* Ancho exacto */
-            --h: 300px; /* Alto exacto */
-            --gap: 15px; /* Espacio */
+            --w: 200px; 
+            --h: 300px; 
+            --gap: 15px; 
         }
 
         body {
@@ -83,7 +82,6 @@
             position: relative;
             filter: brightness(0.4);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            /* Cambiamos el borde por un contorno interno para no afectar el ancho real */
             box-shadow: inset 0 0 0 2px transparent; 
         }
 
@@ -147,29 +145,40 @@
     <button id="btn" class="btn" onclick="spin()">¡GIRAR RULETA!</button>
 
     <script>
+        // 1. LISTA VISUAL: Cómo se ven ordenados en la pantalla
         const movies = [
-            { name: "Bad Bunny", img: "badbunny.jpg" }, 
-            { name: "31 minutos", img: "31.png" },
+            { name: "Bad Bunny", img: "badbunny.jpg" },
             { name: "Shakira", img: "shakira.jpg" },
-            { name: "Michael Jackson", img: "MJ.jpg" },
-            { name: "Los bunkers", img: "bunkers.jpg" },
-            { name: "Chayanne", img: "chayanne.jpg" },
-            { name: "Soda Stereo", img: "soda.jpg" }
+            { name: "Los Bunkers", img: "bunkers.jpg" }, 
+            { name: "31 minutos", img: "31.png" },
+            { name: "Michel Jackson", img: "MJ.jpg" },
+            { name: "Soda stereo", img: "soda.jpg" },
+            { name: "Chayanne", img: "chayanne.jpg" }
         ];
 
-        let blockedIndices = [];
+        // 2. LA TRAMPA: El orden exacto en el que quieres que ganen
+        // Escribe los nombres EXACTAMENTE IGUAL que arriba
+        const ordenDeGanadores = [
+            "Bad Bunny",     // 1er Giro
+            "31 minutos",        // 2do Giro
+            "Los Bunkers",   // 3er Giro
+            "Shakira",     // 4to Giro
+            "Soda Stereo",        // 5to Giro
+            "Michael Jackson", // 6to Giro
+            "Chayanne"    // 7mo Giro
+        ];
+
+        let turnoActual = 0;
         const rail = document.getElementById('rail');
         const btn = document.getElementById('btn');
         const status = document.getElementById('status');
         
-        // Variables exactas
         const posterWidth = 200;
         const gap = 15;
         const step = posterWidth + gap; 
         const copies = 20; 
         const spinLoops = 5; 
 
-        // Fórmula matemática infalible
         function getOffsetForIndex(globalIndex) {
             return -(globalIndex * step + (posterWidth / 2)); 
         }
@@ -193,12 +202,14 @@
         }
 
         function spin() {
-            const winnerIdx = movies.findIndex((m, i) => !blockedIndices.includes(i));
-            
-            if (winnerIdx === -1) {
+            if (turnoActual >= ordenDeGanadores.length) {
                 status.innerText = "¡TODOS COMPLETADOS!";
                 return;
             }
+
+            // Identificar quién debe ganar en este turno según la lista secreta
+            const nombreGanador = ordenDeGanadores[turnoActual];
+            const winnerIdx = movies.findIndex(m => m.name === nombreGanador);
 
             btn.disabled = true;
             status.innerText = "SORTEANDO...";
@@ -224,14 +235,14 @@
 
                 if(winnerEl) {
                     winnerEl.classList.add('winner');
-                    status.innerText = "¡GANADOR: " + movies[winnerIdx].name + "!";
-                    blockedIndices.push(winnerIdx); 
+                    status.innerText = "¡GANADOR: " + nombreGanador + "!";
                 }
 
                 setTimeout(() => {
                     document.querySelectorAll(`.poster-container[data-index="${winnerIdx}"]`)
                             .forEach(p => p.classList.add('blocked'));
                     btn.disabled = false;
+                    turnoActual++; // Avanzamos al siguiente en la lista secreta
                 }, 1000);
 
             }, 3600);

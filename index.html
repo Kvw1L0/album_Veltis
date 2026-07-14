@@ -6,8 +6,8 @@
     <title>Ruleta Trucada - Tema Amarillo/Negro</title>
     <style>
         :root {
-            --theme-color: #FFCC00; /* Amarillo llamativo */
-            --bg: #111111; /* Negro profundo */
+            --theme-color: #FFCC00; 
+            --bg: #111111; 
             --w: 200px;
             --h: 300px;
             --gap: 15px;
@@ -114,7 +114,7 @@
             margin-top: 20px;
             padding: 20px 60px;
             background: var(--theme-color);
-            color: #000; /* Texto negro para contrastar con el amarillo */
+            color: #000;
             border: none;
             border-radius: 50px;
             font-size: 1.5rem;
@@ -152,17 +152,16 @@
     <button id="btn" class="btn" onclick="spin()">¡GIRAR RULETA!</button>
 
     <script>
-        // ATENCIÓN: El orden en el que escribas las películas aquí 
-        // será EL ORDEN EXACTO en el que ganarán.
+        // EL ORDEN AQUÍ ES EL ORDEN EN EL QUE GANARÁN:
         const movies = [
-            { id: 0, name: "Titanic", img: "titanic.jpg" },       // Gana 1ro
-            { id: 1, name: "Shrek", img: "shrek.jpg" },           // Gana 2do
-            { id: 2, name: "Star Wars", img: "starwars.jpg" },    // Gana 3ro
-            { id: 3, name: "Stranger Things", img: "stranger.jpg" }, // Gana 4to
-            { id: 4, name: "Avatar", img: "avatar.jpg" },         // Gana 5to
-            { id: 5, name: "Batman", img: "batman.jpg" },         // Gana 6to
-            { id: 6, name: "Jurassic Park", img: "jurassic.jpg" },// Gana 7mo
-            { id: 7, name: "El Rey León", img: "reyleon.jpg" }    // Gana 8vo
+            { id: 0, name: "Bad Bunny", img: "dtmf.jpg" },       
+            { id: 1, name: "31 minutos", img: "31.png" },           
+            { id: 2, name: "Michael Jackson", img: "MJ.jpg" },    
+            { id: 3, name: "Shakira", img: "shakira.jpg" }, 
+            { id: 4, name: "Los 3", img: "los3.jpg" },         
+            { id: 5, name: "Los Bunkers", img: "bunkers.jpg" },         
+            { id: 6, name: "Soda Stereo", img: "jsoda.jpg" },
+            
         ];
 
         let blockedIds = [];
@@ -171,7 +170,8 @@
         const status = document.getElementById('status');
         
         const step = 215; 
-        const copies = 10; 
+        const copies = 20; // <-- CORRECCIÓN: Subimos esto a 20 para que NUNCA se quede sin imágenes.
+        const spinLoops = 5; // Cuántas vueltas completas dará antes de frenar
 
         function init() {
             let content = "";
@@ -212,12 +212,12 @@
             const currentPos = resetToCenter();
             rail.offsetHeight; 
 
-            // LA TRAMPA: Siempre elige el índice 0 de las películas que quedan disponibles
+            // LA TRAMPA: Siempre elige el primero disponible
             const winnerObj = available[0]; 
             const winnerIdx = movies.findIndex(m => m.id === winnerObj.id);
             
-            // Calculamos la distancia
-            const distance = (movies.length * 6 + winnerIdx) * step;
+            // CORRECCIÓN MATEMÁTICA: Aseguramos que frene exactamente en la posición correcta
+            const distance = ((movies.length * spinLoops) + winnerIdx) * step;
             const finalPos = currentPos - distance;
 
             // Animación
@@ -226,13 +226,13 @@
 
             setTimeout(() => {
                 const centerIdx = Math.floor(copies / 2) * movies.length;
-                const globalWinnerIdx = centerIdx + (movies.length * 6) + winnerIdx;
+                const globalWinnerIdx = centerIdx + (movies.length * spinLoops) + winnerIdx;
                 const winnerEl = document.querySelectorAll('.poster-container')[globalWinnerIdx];
 
                 if(winnerEl) {
                     winnerEl.classList.add('winner');
                     status.innerText = "GANADOR: " + winnerObj.name;
-                    blockedIds.push(winnerObj.id); // La bloquea para que en el próximo giro gane la siguiente
+                    blockedIds.push(winnerObj.id);
                 }
 
                 setTimeout(() => {

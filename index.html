@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruleta Trucada - Tema Amarillo/Negro</title>
+    <style>
+        :root {
+            --theme-color: #FFCC00; /* Amarillo llamativo */
+            --bg: #111111; /* Negro profundo */
+            --w: 200px;
+            --h: 300px;
+            --gap: 15px;
+        }
+
+        body {
+            background: var(--bg);
+            color: white;
+            font-family: 'Arial Black', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: var(--theme-color);
+            text-shadow: 2px 2px 10px rgba(255, 204, 0, 0.3);
+            margin-bottom: 5px;
+        }
+
+        .viewport {
+            position: relative;
+            width: 100%;
+            height: 450px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            mask-image: linear-gradient(to right, transparent, black 30%, black 70%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 30%, black 70%, transparent);
+        }
+
+        .selector {
+            position: absolute;
+            width: calc(var(--w) + 10px);
+            height: calc(var(--h) + 10px);
+            border: 6px solid white;
+            border-radius: 10px;
+            z-index: 100;
+            pointer-events: none;
+            box-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
+        }
+
+        .rail {
+            display: flex;
+            gap: var(--gap);
+            position: absolute;
+            left: 50%;
+            will-change: transform;
+        }
+
+        .poster-container {
+            width: var(--w);
+            height: var(--h);
+            background: #222;
+            border-radius: 6px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 1.2rem;
+            overflow: hidden;
+            position: relative;
+            filter: brightness(0.4);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 2px solid transparent;
+        }
+
+        .poster-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .poster-container span {
+            padding: 20px;
+            z-index: 1;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .poster-container.blocked {
+            filter: grayscale(1) brightness(0.1) !important;
+            opacity: 0.3;
+        }
+
+        .poster-container.winner {
+            filter: brightness(1.3) !important;
+            transform: scale(1.15);
+            box-shadow: 0 0 50px var(--theme-color);
+            border: 4px solid var(--theme-color);
+            z-index: 10;
+        }
+
+        .btn {
+            margin-top: 20px;
+            padding: 20px 60px;
+            background: var(--theme-color);
+            color: #000; /* Texto negro para contrastar con el amarillo */
+            border: none;
+            border-radius: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+            box-shadow: 0 5px 20px rgba(255, 204, 0, 0.4);
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            background: #ffe066;
+        }
+
+        .btn:disabled { 
+            background: #333; 
+            color: #666;
+            cursor: not-allowed; 
+            box-shadow: none; 
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 id="status">SISTEMA DE SORTEO</h1>
+    <p style="color: #888; font-family: sans-serif; margin-bottom: 20px;">Preparando selección...</p>
+
+    <div class="viewport">
+        <div class="selector"></div>
+        <div id="rail" class="rail"></div>
+    </div>
+
+    <button id="btn" class="btn" onclick="spin()">¡GIRAR RULETA!</button>
+
+    <script>
+        // ATENCIÓN: El orden en el que escribas las películas aquí 
+        // será EL ORDEN EXACTO en el que ganarán.
+        const movies = [
+            { id: 0, name: "Titanic", img: "titanic.jpg" },       // Gana 1ro
+            { id: 1, name: "Shrek", img: "shrek.jpg" },           // Gana 2do
+            { id: 2, name: "Star Wars", img: "starwars.jpg" },    // Gana 3ro
+            { id: 3, name: "Stranger Things", img: "stranger.jpg" }, // Gana 4to
+            { id: 4, name: "Avatar", img: "avatar.jpg" },         // Gana 5to
+            { id: 5, name: "Batman", img: "batman.jpg" },         // Gana 6to
+            { id: 6, name: "Jurassic Park", img: "jurassic.jpg" },// Gana 7mo
+            { id: 7, name: "El Rey León", img: "reyleon.jpg" }    // Gana 8vo
+        ];
+
+        let blockedIds = [];
+        const rail = document.getElementById('rail');
+        const btn = document.getElementById('btn');
+        const status = document.getElementById('status');
+        
+        const step = 215; 
+        const copies = 10; 
+
+        function init() {
+            let content = "";
+            for(let i = 0; i < copies; i++) {
+                movies.forEach(m => {
+                    content += `
+                        <div class="poster-container" data-id="${m.id}" data-name="${m.name}">
+                            <span>${m.name}</span>
+                            <img src="${m.img}" draggable="false" onerror="this.style.display='none'">
+                        </div>`;
+                });
+            }
+            rail.innerHTML = content;
+            resetToCenter();
+        }
+
+        function resetToCenter() {
+            rail.style.transition = "none";
+            const centerIdx = Math.floor(copies / 2) * movies.length;
+            const offset = -(centerIdx * step) - (step / 2);
+            rail.style.transform = `translateX(${offset}px)`;
+            return offset;
+        }
+
+        function spin() {
+            const available = movies.filter(m => !blockedIds.includes(m.id));
+            
+            if (available.length === 0) {
+                status.innerText = "¡TODAS COMPLETADAS!";
+                return;
+            }
+
+            btn.disabled = true;
+            status.innerText = "SORTEANDO...";
+            
+            document.querySelectorAll('.poster-container').forEach(p => p.classList.remove('winner'));
+
+            const currentPos = resetToCenter();
+            rail.offsetHeight; 
+
+            // LA TRAMPA: Siempre elige el índice 0 de las películas que quedan disponibles
+            const winnerObj = available[0]; 
+            const winnerIdx = movies.findIndex(m => m.id === winnerObj.id);
+            
+            // Calculamos la distancia
+            const distance = (movies.length * 6 + winnerIdx) * step;
+            const finalPos = currentPos - distance;
+
+            // Animación
+            rail.style.transition = "transform 2.5s cubic-bezier(0.1, 0, 0.1, 1)";
+            rail.style.transform = `translateX(${finalPos}px)`;
+
+            setTimeout(() => {
+                const centerIdx = Math.floor(copies / 2) * movies.length;
+                const globalWinnerIdx = centerIdx + (movies.length * 6) + winnerIdx;
+                const winnerEl = document.querySelectorAll('.poster-container')[globalWinnerIdx];
+
+                if(winnerEl) {
+                    winnerEl.classList.add('winner');
+                    status.innerText = "GANADOR: " + winnerObj.name;
+                    blockedIds.push(winnerObj.id); // La bloquea para que en el próximo giro gane la siguiente
+                }
+
+                setTimeout(() => {
+                    document.querySelectorAll(`.poster-container[data-id="${winnerObj.id}"]`)
+                            .forEach(p => p.classList.add('blocked'));
+                    btn.disabled = false;
+                }, 800);
+
+            }, 2600);
+        }
+
+        init();
+    </script>
+</body>
+</html>

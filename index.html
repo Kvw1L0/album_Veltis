@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ruleta</title>
+    <title>Ruleta Trucada con Audio y Barra Espaciadora</title>
     <style>
         * {
             box-sizing: border-box;
@@ -134,8 +134,8 @@
 </head>
 <body>
 
-    <h1 id="status">VELTIS TINY DESK</h1>
-    <p style="color: #888; font-family: sans-serif; margin-bottom: 20px;">Preparando selección...</p>
+    <h1 id="status">SISTEMA DE SORTEO</h1>
+    <p style="color: #888; font-family: sans-serif; margin-bottom: 20px;">Presiona ESPACIO o haz clic para girar...</p>
 
     <div class="viewport">
         <div class="selector"></div>
@@ -145,20 +145,17 @@
     <button id="btn" class="btn" onclick="spin()">¡GIRAR RULETA!</button>
 
     <script>
-        // 1. LISTA VISUAL: Agregamos la propiedad 'audio' con el nombre del archivo mp3
         const movies = [
-            
-            
             { name: "Los Bunkers", img: "bunkers.jpg", audio: "bunkers.mp3" }, 
             { name: "Shakira", img: "shakira.jpg", audio: "avatar.mp3" },
             { name: "Bad Bunny", img: "badbunny.jpg", audio: "dtmf.mp3" },
             { name: "Chayanne", img: "chayanne.jpg", audio: "batman.mp3" },
+            { name: "31 minutos", img: "31.png", audio: "31.mp3" }, 
             { name: "Michael Jackson", img: "MJ.jpg", audio: "jurassic.mp3" },
             { name: "Soda Stereo", img: "soda.jpg", audio: "reyleon.mp3" }
-        ];
 
-        // 2. EL ORDEN SECRETO
-        const ordenDeGanadores = [
+
+const ordenDeGanadores = [
             "Bad Bunny",
             "31 minutos",
             "Los Bunkers",
@@ -168,9 +165,10 @@
             "Soda Stereo"
         ];
 
+
         let turnoActual = 0;
-        let audioActual = null; // Guardará el reproductor de música activo
-        let timeoutAudio = null; // Guardará el temporizador de 10 segundos
+        let audioActual = null; 
+        let timeoutAudio = null; 
 
         const rail = document.getElementById('rail');
         const btn = document.getElementById('btn');
@@ -210,7 +208,6 @@
                 return;
             }
 
-            // Si hay un audio sonando del turno anterior, lo detenemos
             if (audioActual) {
                 audioActual.pause();
                 audioActual.currentTime = 0;
@@ -246,13 +243,11 @@
                     winnerEl.classList.add('winner');
                     status.innerText = "¡GANADOR: " + nombreGanador + "!";
                     
-                    // --- LÓGICA DE AUDIO AQUÍ ---
                     const rutaAudio = movies[winnerIdx].audio;
                     if(rutaAudio) {
                         audioActual = new Audio(rutaAudio);
                         audioActual.play().catch(e => console.log("Error al reproducir audio:", e));
                         
-                        // Detener la canción a los 10 segundos exactos (10000 milisegundos)
                         timeoutAudio = setTimeout(() => {
                             if (audioActual) {
                                 audioActual.pause();
@@ -270,6 +265,20 @@
 
             }, 3600);
         }
+
+        // --- NUEVO CÓDIGO: Evento de la barra espaciadora ---
+        document.addEventListener('keydown', function(event) {
+            // Verificamos si la tecla presionada es la barra espaciadora
+            if (event.code === 'Space' || event.key === ' ') {
+                // Evita que la página haga scroll hacia abajo por defecto
+                event.preventDefault();
+                
+                // Si el botón no está bloqueado (es decir, no está girando), lanzamos el giro
+                if (!btn.disabled) {
+                    spin();
+                }
+            }
+        });
 
         init();
     </script>
